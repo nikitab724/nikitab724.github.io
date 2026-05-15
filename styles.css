@@ -1,226 +1,67 @@
-:root {
-  color-scheme: light;
-  --ink: #1f2933;
-  --muted: #5b6773;
-  --paper: #fbfaf7;
-  --band: #eef4f0;
-  --line: #d8dfd9;
-  --teal: #167c80;
-  --teal-dark: #0f5558;
-  --gold: #b7791f;
-  --white: #ffffff;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.6;
+  background: #fff;
+  color: #232629;
+  font-family: Arial, "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-a {
-  color: inherit;
-}
-
-.site-header {
-  background: var(--band);
-  border-bottom: 1px solid var(--line);
-}
-
-.nav {
-  width: min(1120px, calc(100% - 32px));
+header,
+main {
+  max-width: 760px;
   margin: 0 auto;
-  min-height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  padding: 0 16px;
 }
 
-.brand {
-  font-weight: 800;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.nav-links a {
-  text-decoration: none;
-}
-
-.nav-links a:hover,
-.text-link:hover {
-  color: var(--teal-dark);
-}
-
-.intro {
-  width: min(1120px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 76px 0 88px;
-}
-
-.eyebrow {
-  margin: 0 0 12px;
-  color: var(--gold);
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-h1,
-h2 {
-  margin: 0;
-  line-height: 1.08;
+header {
+  padding-top: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #d6d9dc;
 }
 
 h1 {
-  max-width: 840px;
-  font-size: clamp(2.3rem, 8vw, 5.4rem);
-  font-weight: 850;
+  margin: 0 0 8px;
+  font-size: 21px;
+  font-weight: 400;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+}
+
+a {
+  color: #0074cc;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0a95ff;
+  text-decoration: underline;
+}
+
+article {
+  padding: 22px 0;
+  border-bottom: 1px solid #e3e6e8;
+}
+
+.date,
+.meta {
+  color: #6a737c;
+}
+
+.date {
+  margin: 0 0 4px;
+  font-size: 13px;
 }
 
 h2 {
-  font-size: clamp(2rem, 5vw, 3.7rem);
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 400;
 }
 
-.intro-copy {
-  max-width: 720px;
-  margin: 24px 0 0;
-  color: var(--muted);
-  font-size: 1.18rem;
-}
-
-.project-feature {
-  width: min(1120px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 72px 0;
-  display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(340px, 1.12fr);
-  gap: 44px;
-  align-items: center;
-}
-
-.feature-copy p:not(.eyebrow),
-.writeup p:not(.eyebrow) {
-  color: var(--muted);
-  font-size: 1.05rem;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 28px;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 8px;
-  background: var(--teal);
-  color: var(--white);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.button:hover {
-  background: var(--teal-dark);
-}
-
-.text-link {
-  color: var(--teal);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.project-visual {
-  margin: 0;
-}
-
-.project-visual img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--white);
-  box-shadow: 0 20px 60px rgba(31, 41, 51, 0.12);
-}
-
-figcaption {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.writeup {
-  border-top: 1px solid var(--line);
-  width: min(860px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 72px 0 84px;
-}
-
-.writeup p {
-  margin: 20px 0 0;
-}
-
-.footer {
-  border-top: 1px solid var(--line);
-  width: min(1120px, calc(100% - 32px));
-  min-height: 72px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.footer a {
-  color: var(--teal);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-@media (max-width: 780px) {
-  .nav,
-  .footer {
-    align-items: flex-start;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .nav {
-    padding: 16px 0;
-  }
-
-  .intro {
-    padding: 48px 0 58px;
-  }
-
-  .project-feature {
-    grid-template-columns: 1fr;
-    padding: 52px 0;
-  }
+p {
+  margin: 0 0 10px;
 }
