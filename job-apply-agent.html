@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Apply Agent - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on Job Apply Agent.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">May 2026</p>
+        <h2>Job Apply Agent</h2>
+        <p class="meta">
+          <a href="https://github.com/nikitab724/job-apply-agent">Source</a>
+          · Node.js, OpenAI JSON agents, LaTeX, local browser autofill
+        </p>
+
+        <p>
+          Job Apply Agent is a local assistant for job applications. The goal is
+          not to submit applications automatically. The goal is to remove the
+          repetitive work around searching, tailoring, drafting, and filling,
+          while keeping the final decision visible.
+        </p>
+
+        <h3>What it does</h3>
+        <ul>
+          <li>Turns a plain-language search target into supported ATS searches.</li>
+          <li>Scores fit and skips roles with obvious mismatch signals.</li>
+          <li>Tailors a one-page LaTeX resume from source-backed bullets.</li>
+          <li>Drafts form answers from verified profile and wiki context.</li>
+          <li>Fills forms locally, without treating fill as submission.</li>
+        </ul>
+
+        <h3>How it is structured</h3>
+        <p>
+          The app runs as a local Node server with a small dashboard. The queue
+          store owns application state. OpenAI workers return schema-validated
+          JSON for search planning, match reasoning, resume choices, and answer
+          drafts. Deterministic code handles gates like queue transitions,
+          resume PDF validation, and submit confirmation.
+        </p>
+
+        <h3>Why the boundaries matter</h3>
+        <p>
+          Job applications mix automation-friendly work with personal judgment.
+          This project keeps generated artifacts, local profile data, private
+          resume content, and API keys out of git. It also keeps the browser
+          autofill path separate from the LLM path, so filling a form is never
+          confused with submitting one.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

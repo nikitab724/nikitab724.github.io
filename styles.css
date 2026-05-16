@@ -26,6 +26,10 @@ h1 {
   font-weight: 400;
 }
 
+h1 a {
+  color: #232629;
+}
+
 nav {
   display: flex;
   gap: 12px;
@@ -44,6 +48,10 @@ a:hover {
 article {
   padding: 22px 0;
   border-bottom: 1px solid #e3e6e8;
+}
+
+.post-list-item {
+  cursor: default;
 }
 
 .date,
