@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Market Bubble Live - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on Market Bubble Live.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">June 2026</p>
+        <h2>Market Bubble Live</h2>
+        <p class="meta">
+          <a href="https://github.com/nikitab724/market-bubble-live-chat">Source</a>
+          · Node.js, SQLite, server-sent events, Docker, Chrome extension
+        </p>
+
+        <p>
+          A host streams to Twitch and Kick at the same time while other people
+          talk about the same stream on X, and the audience ends up split
+          across four chat rooms that cannot see each other. Market Bubble Live
+          merges them into one feed, with a combined viewer count and a chip on
+          each message showing where it came from.
+        </p>
+        <p>
+          Three surfaces run off one server: the viewer page with the player
+          and chat, a chat-only page meant to be dropped into OBS as a browser
+          source, and a password-protected admin page for editing which sources
+          are live.
+        </p>
+
+        <h3>Four connectors, four different shapes</h3>
+        <p>
+          No two platforms hand you chat the same way, so each connector is
+          shaped by whatever that platform actually allows.
+        </p>
+        <p>
+          Twitch connects read-only over IRC through a WebSocket from the
+          browser. Stream status and viewer count come from Helix server-side,
+          so the client ID and secret never reach the page.
+        </p>
+        <p>
+          Kick pushes rather than being polled. Messages arrive at a webhook
+          endpoint, get their signature verified, are normalized into the
+          shared message shape, then go out to whoever is connected.
+        </p>
+        <p>
+          X has no usable path, so it gets a Chrome extension. A content script
+          watches the live chat DOM on the page and posts what it sees back to
+          the server. It is not elegant and it is the only thing that works
+          today. The docs treat it as a bridge and note where an official API
+          would slot in whenever that becomes possible.
+        </p>
+        <p>
+          Everything converges on one normalized message shape and fans out to
+          browsers over server-sent events.
+        </p>
+
+        <h3>Surviving a reconnect</h3>
+        <p>
+          Chat events go into a SQLite log on a persistent Docker volume rather
+          than being held in memory. A browser that drops its connection comes
+          back with a cursor and replays what it missed, and that keeps working
+          across a server restart. For this volume of messages it saves running
+          a separate database service for what is essentially an append-only
+          list.
+        </p>
+        <p>
+          Twitch's native emotes render straight from the IRC tags.
+          Third-party emotes from 7TV, BetterTTV, and FrankerFaceZ are fetched
+          and cached server-side per channel, since the alternative is every
+          viewer's browser hitting three emote APIs on page load.
+        </p>
+
+        <h3>Admin auth</h3>
+        <p>
+          The admin password is stored as a pbkdf2 hash in a gitignored file on
+          the data volume, and that file outranks the environment variable
+          seed. So the password can be changed from the panel and survive a
+          redeploy without anyone editing env config on the server. When no
+          password is configured at all, admin is open, which is convenient
+          locally and needs setting before the thing is exposed.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

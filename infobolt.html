@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>InfoBolt - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on InfoBolt.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">January 2026 - present</p>
+        <h2>InfoBolt</h2>
+        <p class="meta">
+          <a href="https://infoboltai.com">infoboltai.com</a>
+          · Python, FastAPI, Docker, Supabase, OpenAI, React
+        </p>
+
+        <p>
+          InfoBolt is a support inbox for Shopify brands. Email, Instagram DMs,
+          SMS, and live chat all land in one thread view, and the AI drafts a
+          reply using the customer's real order data rather than guessing from
+          the message alone. A merchant reads the draft, edits it if it needs
+          editing, and sends. For the categories they trust, it sends on its
+          own.
+        </p>
+
+        <h3>What it does</h3>
+        <ul>
+          <li>Pulls four channels into one inbox with shared thread history.</li>
+          <li>Reads Shopify orders and products, so a reply knows what was bought and where it is.</li>
+          <li>Drafts the reply and saves the steps it took to get there.</li>
+          <li>Flags anything that needs a person and routes it out of the auto-send path.</li>
+        </ul>
+
+        <h3>How it is built</h3>
+        <p>
+          Two containers sit behind host nginx. The API is Python 3.12 on
+          FastAPI and uvicorn, and it owns the chatbot, the per-channel agents,
+          the admin API, the OAuth flows, and a WebSocket hub. The second
+          container is nginx: it serves the embeddable chat widget and a demo
+          storefront, and proxies everything else to the API. The admin panel
+          is React and Vite, built into the API image and served from
+          <code>/admin</code>. Supabase holds the data, Stripe handles billing,
+          and Langfuse traces the model calls.
+        </p>
+        <p>
+          The widget has to load on merchant sites as a plain classic script,
+          not a module, because a module-type load hits CORS cross-origin. That
+          one constraint shapes the whole build: the embed snippet carries the
+          client and token as data attributes, and the boot script reads them
+          off its own tag and injects the stylesheet itself.
+        </p>
+
+        <h3>Skills, not one big prompt</h3>
+        <p>
+          Every reply is drafted through a skill, which is a markdown file with
+          YAML frontmatter holding the instructions for one kind of
+          conversation: order status, returns, product questions, complaints,
+          bookings. The system prompt carries only a one-line catalog of them.
+          When the model decides it needs the full instructions, it calls
+          <code>invoke_skill</code> and gets them.
+        </p>
+        <p>
+          Two things fall out of that. The prompt stays small no matter how
+          many skills exist, and customizing a client becomes a file diff. A
+          brand that handles returns differently gets its own
+          <code>handle_return_request.md</code> under a client directory, which
+          shadows the base file at load time. No database rows, no prompt
+          editor in the admin panel, and the change shows up in git history
+          like any other code change.
+        </p>
+
+        <h3>Deploys and migrations</h3>
+        <p>
+          A push to main runs lint and tests, then rebuilds staging. Production
+          is a manual button. Migrations run in between the image build and the
+          container swap, so the new image is already on disk when the schema
+          changes and no running code ever observes a half-migrated database. A
+          migration that fails aborts the deploy with the old containers still
+          serving traffic, which makes the bad case "nothing deployed" instead
+          of "half deployed".
+        </p>
+        <p>
+          Each file is checksummed with sha256 once it has run. Editing a
+          migration that already applied fails the next deploy rather than
+          being silently ignored. Anything that reads as destructive gets
+          detected two ways, by filename and by scanning the body for
+          <code>DROP TABLE</code>, <code>TRUNCATE</code>, and friends, then
+          logged and left pending for a person to run by hand.
+        </p>
+
+        <h3>A firewall that was not filtering anything</h3>
+        <p>
+          The self-hosted Firecrawl scraper runs on its own VPS with an
+          unauthenticated API on port 3002. I locked it down to the two hosts
+          that need it with ufw, checked the rules, and it stayed reachable
+          from everywhere.
+        </p>
+        <p>
+          Docker publishes ports by writing its own iptables rules, and traffic
+          forwarded to a container goes through FORWARD and DOCKER-USER without
+          ever touching the INPUT chain that ufw filters. The rules were
+          correct and simply never consulted. The allowlist had to move into
+          DOCKER-USER instead, installed as a systemd unit ordered after
+          docker so it survives a reboot, and re-asserted on every deploy.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

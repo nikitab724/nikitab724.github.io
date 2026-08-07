@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Forth - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on Forth.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">June 2026 - present</p>
+        <h2>Forth</h2>
+        <p class="meta">
+          Private repo
+          · Expo, React Native, TypeScript, Skia, RevenueCat, iOS Family Controls
+        </p>
+
+        <p>
+          Forth is an iOS app for people whose porn use feels compulsive. The
+          core idea is small: when an urge hits, you open a short visuospatial
+          game and play it for three to five minutes. Around that sits an
+          assessment, a personalized plan, a paywall, and then the paid app,
+          which has the games, an urge timer, progress that survives a setback,
+          and a native Screen Time blocker.
+        </p>
+
+        <h3>Why these games and not others</h3>
+        <p>
+          The evidence the app rests on is about competing visual imagery. A
+          craving holds an image in visual working memory, and occupying that
+          same memory with another visual task may reduce how intense the
+          craving feels. So every game has to be visuospatial. Word scrambles,
+          Stroop tasks, and math drills are out, because in that literature
+          they are usually the control condition rather than the treatment.
+        </p>
+        <p>
+          The constraint on adding a game is not an aesthetic one. A word
+          scramble would be a perfectly good game and the wrong game.
+        </p>
+        <p>
+          There are six: Piece, Pass, Grow, Match, Spot, and Stack. All of them
+          are no-fail and unscored, because losing at a game you opened to
+          calm down is not useful. Piece and Pass run on a Skia and Reanimated
+          canvas engine written in the repo. The other four are ordinary React
+          Native views, which is why they still work in the web preview where
+          Skia canvases refuse to flush.
+        </p>
+        <p>
+          Grow slides public domain museum paintings back together. Each one is
+          stored with its artist, date, rights, and source URL, and finishing a
+          painting adds it to a gallery.
+        </p>
+
+        <h3>There is no backend</h3>
+        <p>
+          The app has no server behind it, and so no accounts and nothing to
+          sync. App state is SQLite on the device, migrated across from an
+          older SecureStore layout. Billing goes
+          through RevenueCat. Analytics go to PostHog through an allowlist that
+          only passes funnel events, so an event can record that someone
+          finished onboarding but never what they answered. Adding an event
+          means editing the event definitions and the allowlist together, which
+          is friction on purpose.
+        </p>
+
+        <h3>The blocker is real, and it is fiddly</h3>
+        <p>
+          The blocker is a native module wrapping iOS Family Controls and
+          Managed Settings. Apps and categories picked through Apple's Screen
+          Time picker get Forth's own shield screen. Adult websites cannot:
+          Apple exposes no adult-specific token to shield, so that rule goes to
+          Apple's web content filter and shows Apple's page instead. The
+          alternative was blocking every website.
+        </p>
+        <p>
+          Two app extensions ship alongside it, one to draw the blocked screen
+          and one to handle its button. The blocked screen shows the user's own
+          progress world, snapshotted without its inhabitants and handed to the
+          extension through a shared App Group, since an extension cannot read
+          the app's database directly.
+        </p>
+        <p>
+          None of this runs in Expo Go, where the blocker falls back to a
+          simulation that looks like it works. The <code>ios</code> directory
+          is generated and gitignored, so it goes stale quietly: change the
+          native plugin without regenerating and the build ships last week's
+          entitlements, and the feature fails in a way that looks exactly like
+          a code bug. I check entitlements on the signed build rather than in
+          source, because only the signed copy matters.
+        </p>
+
+        <h3>Claims the tests enforce</h3>
+        <p>
+          The app cannot promise outcomes. The blocker is deliberately easy to
+          switch off, so any claim about what a user will achieve would be a
+          lie the product cannot back. A test file checks the paywall copy
+          against that rule. It is partly for App Store review 3.1.2, which
+          wants the thing being purchased named plainly, and partly because it
+          is the rule everything else is built on. Nothing in the app says it
+          cures addiction, rewires anything, or replaces therapy.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

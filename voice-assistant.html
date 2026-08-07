@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voice Assistant - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on Voice Assistant.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">December 2025</p>
+        <h2>Voice Assistant</h2>
+        <p class="meta">
+          <a href="https://github.com/nikitab724/voice_assistant">Source</a>
+          · Python, OpenAI, Whisper, FastMCP, Google APIs, Supabase, iOS
+        </p>
+
+        <p>
+          A voice assistant that does things in your actual accounts rather
+          than describing what you could do. You talk, it transcribes, and the
+          model can create a calendar event, draft or send a Gmail message, add
+          a task, or look up a place or the weather, then tell you what it did.
+        </p>
+
+        <h3>How the tools reach the model</h3>
+        <p>
+          The Google work is plain Python, one module per surface: calendar,
+          gmail, tasks, maps, weather. Those functions are wrapped by a FastMCP
+          server that runs in-process, and a bridge hands the tool list to the
+          OpenAI client and drives the call loop.
+        </p>
+        <p>
+          Going through MCP for something living in the same process looks like
+          pure overhead, and the reason it is there is the boundary. Tool
+          definitions and their schemas sit in one place, the agent code never
+          imports a Google client directly, and the server can be pointed
+          somewhere else or moved out of process later without the agent
+          noticing. Google auth is a service account with domain-wide
+          delegation, configured in <code>config.json</code> with environment
+          variables available as per-deployment overrides.
+        </p>
+
+        <h3>Voice and memory</h3>
+        <p>
+          Recording happens locally and transcription goes through Whisper.
+          Sessions and user context live in Supabase behind a small repository
+          layer, so a conversation keeps its history and the assistant knows
+          who it is talking to across sessions rather than starting cold every
+          time.
+        </p>
+
+        <h3>Surfaces</h3>
+        <p>
+          The same backend is driven three ways: a Flask server, command-line
+          scripts for running the agent or transcribing a file on its own, and
+          a native iOS client that lives in the same repo. Each Google tool
+          also has its own test script, which matters more than usual here.
+          When a calendar call fails it is rarely the model's fault, and being
+          able to exercise the tool without the agent in the way is the
+          difference between a five-minute fix and an afternoon.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

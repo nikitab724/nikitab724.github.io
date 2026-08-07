@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crisis Analysis - Nikita Borisov</title>
+    <meta name="description" content="A short write-up on Crisis Analysis.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Nikita Borisov</a></h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="https://github.com/nikitab724">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <p class="date">Spring 2025</p>
+        <h2>Crisis Analysis</h2>
+        <p class="meta">
+          <a href="https://github.com/nikitab724/crisis-analysis">Source</a>
+          · Python, PyTorch, BERT, spaCy, Dash, Docker
+        </p>
+
+        <p>
+          This reads the Bluesky firehose as it happens and tries to answer
+          three questions about each post: is it about a crisis, what kind, and
+          where. The output is a live dashboard with counts by disaster type
+          and location.
+        </p>
+
+        <h3>The pipeline</h3>
+        <p>
+          A firehose client subscribes to the Bluesky repo stream and pulls
+          post records out of the commits as they arrive. It runs in its own
+          process and writes to CSV. The stream does not wait for you, so
+          anything slow in that loop means dropped posts.
+        </p>
+        <p>
+          Posts go first to a fine-tuned BERT sequence classifier, a binary
+          crisis or not gate. Text gets stripped of links, hashtags, mentions,
+          and punctuation before tokenizing, matching how the training data was
+          cleaned. Almost nothing on the firehose is about a crisis, and the
+          point of this gate is to keep the expensive work off everything else.
+        </p>
+        <p>
+          What survives goes to a spaCy pipeline built around a
+          transformer-based NER model trained to tag disaster mentions,
+          alongside an entity ruler and sentiment scoring. Extracted locations
+          are then resolved against a GeoNames US gazetteer loaded into a
+          lookup dictionary at startup, which turns a bare string like
+          "Asheville" into a city, state, region, and country.
+        </p>
+        <p>
+          A Dash app reads the running counts and draws the dashboard.
+        </p>
+
+        <h3>Separate processes</h3>
+        <p>
+          The scraper and the model each run as their own server process with
+          their own log file. The firehose does not slow down for BERT
+          inference, so anything that blocks the read loop costs you posts that
+          are simply gone. Keeping them apart lets the reader stay at the head
+          of the stream while the model works through whatever has piled up.
+        </p>
+
+        <h3>Everything in a container</h3>
+        <p>
+          The whole thing runs in one Docker image on Python 3.12, with the app
+          and data directories bind-mounted from the host instead of copied in
+          at build time. Editing a file on the laptop changes it inside the
+          container with no rebuild, and dropping in new training data does not
+          invalidate the image.
+        </p>
+        <p>
+          The container's command is <code>sleep infinity</code>, so the
+          Jupyter server, the Dash app, and the scrapers all get started by
+          hand inside it. That is deliberate. The container was there to give
+          everyone on the project the same environment, which matters more than
+          deployment convenience when the alternative is a group of people
+          debugging a different spaCy and PyTorch install each.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

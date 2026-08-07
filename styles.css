@@ -45,6 +45,11 @@ a:hover {
   text-decoration: underline;
 }
 
+.intro {
+  margin: 22px 0 0;
+  color: #6a737c;
+}
+
 article {
   padding: 22px 0;
   border-bottom: 1px solid #e3e6e8;
