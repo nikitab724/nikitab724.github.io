@@ -26,48 +26,47 @@
         </p>
 
         <p>
-          A voice assistant that does things in your actual accounts rather
-          than describing what you could do. You talk, it transcribes, and the
-          model can create a calendar event, draft or send a Gmail message, add
-          a task, or look up a place or the weather, then tell you what it did.
+          A voice assistant that operates on real accounts rather than
+          describing what you could do. I built the agent loop, the tool layer,
+          the storage, and an iOS client on top of the same backend.
         </p>
 
-        <h3>How the tools reach the model</h3>
+        <h3>The stack</h3>
         <p>
-          The Google work is plain Python, one module per surface: calendar,
-          gmail, tasks, maps, weather. Those functions are wrapped by a FastMCP
-          server that runs in-process, and a bridge hands the tool list to the
-          OpenAI client and drives the call loop.
-        </p>
-        <p>
-          Going through MCP for something living in the same process looks like
-          pure overhead, and the reason it is there is the boundary. Tool
-          definitions and their schemas sit in one place, the agent code never
-          imports a Google client directly, and the server can be pointed
-          somewhere else or moved out of process later without the agent
-          noticing. Google auth is a service account with domain-wide
-          delegation, configured in <code>config.json</code> with environment
-          variables available as per-deployment overrides.
+          Python with the OpenAI SDK, Whisper for transcription, FastMCP for the
+          tool server, Google's API clients for Calendar, Gmail, and Tasks, and
+          Supabase for session and user context. A Flask server and a set of CLI
+          scripts drive it. The iOS client lives in the same repo.
         </p>
 
-        <h3>Voice and memory</h3>
+        <h3>MCP for tools in the same process</h3>
         <p>
-          Recording happens locally and transcription goes through Whisper.
-          Sessions and user context live in Supabase behind a small repository
-          layer, so a conversation keeps its history and the assistant knows
-          who it is talking to across sessions rather than starting cold every
-          time.
+          The tool server runs in-process with the agent, which makes MCP look
+          like pure overhead. I used it for the boundary it forces. Tool
+          definitions and their JSON schemas live in one place, the agent code
+          never imports a Google client directly, and pointing the bridge at an
+          out-of-process server later is a config change instead of a refactor.
+        </p>
+        <p>
+          It also meant the workflow modules stayed plain Python functions, one
+          per surface, testable without an agent anywhere near them.
         </p>
 
-        <h3>Surfaces</h3>
+        <h3>Auth and config</h3>
         <p>
-          The same backend is driven three ways: a Flask server, command-line
-          scripts for running the agent or transcribing a file on its own, and
-          a native iOS client that lives in the same repo. Each Google tool
-          also has its own test script, which matters more than usual here.
-          When a calendar call fails it is rarely the model's fault, and being
-          able to exercise the tool without the agent in the way is the
-          difference between a five-minute fix and an afternoon.
+          Google auth is a service account with domain-wide delegation. Settings
+          live in <code>config.json</code> with environment variables as
+          per-deployment overrides, so the same checkout runs against a
+          different calendar or delegate without edits to tracked files.
+        </p>
+
+        <h3>Testing tools without the agent</h3>
+        <p>
+          Every Google tool has a standalone test script. When a calendar call
+          fails it is almost never the model's fault, it is a scope, a
+          delegation, or a malformed payload. Being able to run the tool on its
+          own turns that into checking one thing instead of bisecting a whole
+          agent loop with a nondeterministic component in the middle of it.
         </p>
       </article>
     </main>

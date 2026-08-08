@@ -18,8 +18,8 @@
     <main>
       <p class="intro">
         I build AI products and usually end up owning the whole stack, from the
-        model prompts down to the nginx config. These are the ones worth
-        writing up.
+        model prompts down to the nginx config. Notes on what I built and the
+        decisions behind it.
       </p>
 
       <article class="post-list-item">
@@ -29,9 +29,9 @@
           Python, FastAPI, Docker, Supabase, OpenAI, React
         </p>
         <p>
-          A support inbox for Shopify brands. Email, Instagram DMs, SMS, and
-          live chat land in one place, and replies are drafted against the
-          customer's actual order data.
+          A support inbox for Shopify brands. FastAPI backend with a React
+          admin panel, an embeddable widget, and the Docker, nginx, and deploy
+          pipeline underneath it.
         </p>
         <p><a href="infobolt.html">Read more</a></p>
       </article>
@@ -43,8 +43,9 @@
           Expo, React Native, TypeScript, Skia, RevenueCat, iOS Family Controls
         </p>
         <p>
-          An iOS app for managing compulsive porn use. Everything sensitive
-          stays on the phone, and there is no backend at all.
+          A solo iOS build. Expo and React Native, a Skia canvas engine I wrote
+          for the games, a native Family Controls module for the blocker, and
+          no backend anywhere.
         </p>
         <p><a href="forth.html">Read more</a></p>
       </article>
@@ -56,9 +57,9 @@
           Node.js, SQLite, server-sent events, Docker, Chrome extension
         </p>
         <p>
-          Merges livestream chat from Twitch, Kick, X, and a native site into
-          one feed, with a viewer page and an OBS overlay reading the same
-          data.
+          A Node server merging Twitch, Kick, and X chat into one SSE feed,
+          with a SQLite replay log and a Chrome extension bridging the platform
+          that has no API.
         </p>
         <p><a href="market-bubble-live.html">Read more</a></p>
       </article>
@@ -70,8 +71,9 @@
           Node.js, OpenAI JSON agents, LaTeX, local browser autofill
         </p>
         <p>
-          A local assistant for job applications that keeps search, tailoring,
-          drafting, and autofill under manual review.
+          Schema-validated OpenAI workers for the judgment calls, with
+          deterministic code owning every gate the model is not allowed to
+          decide.
         </p>
         <p><a href="job-apply-agent.html">Read more</a></p>
       </article>
@@ -83,8 +85,9 @@
           Python, OpenAI, Whisper, FastMCP, Google APIs, Supabase, iOS
         </p>
         <p>
-          Talk to it and it books calendar events, drafts Gmail, and manages
-          tasks. The tools reach the model over MCP.
+          A Python agent over an in-process FastMCP tool server, with Whisper
+          transcription, Google service account auth, and Supabase session
+          memory.
         </p>
         <p><a href="voice-assistant.html">Read more</a></p>
       </article>
@@ -96,8 +99,8 @@
           Python, PyTorch, BERT, spaCy, Dash, Docker
         </p>
         <p>
-          Reads the Bluesky firehose live, classifies posts as crisis or not,
-          then works out what kind of disaster it is and where.
+          A fine-tuned BERT gate feeding a spaCy transformer NER pipeline,
+          reading the Bluesky firehose live behind a Dash dashboard.
         </p>
         <p><a href="crisis-analysis.html">Read more</a></p>
       </article>

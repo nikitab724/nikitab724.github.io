@@ -26,93 +26,92 @@
         </p>
 
         <p>
-          InfoBolt is a support inbox for Shopify brands. Email, Instagram DMs,
-          SMS, and live chat all land in one thread view, and the AI drafts a
-          reply using the customer's real order data rather than guessing from
-          the message alone. A merchant reads the draft, edits it if it needs
-          editing, and sends. For the categories they trust, it sends on its
-          own.
+          A support inbox for Shopify brands that drafts replies against real
+          order data. It is the project I spend most of my time on, and I built
+          and run all of it: the backend, the admin panel, the embeddable
+          widget, the servers, and the deploy pipeline.
         </p>
 
-        <h3>What it does</h3>
-        <ul>
-          <li>Pulls four channels into one inbox with shared thread history.</li>
-          <li>Reads Shopify orders and products, so a reply knows what was bought and where it is.</li>
-          <li>Drafts the reply and saves the steps it took to get there.</li>
-          <li>Flags anything that needs a person and routes it out of the auto-send path.</li>
-        </ul>
-
-        <h3>How it is built</h3>
+        <h3>The stack</h3>
         <p>
-          Two containers sit behind host nginx. The API is Python 3.12 on
-          FastAPI and uvicorn, and it owns the chatbot, the per-channel agents,
-          the admin API, the OAuth flows, and a WebSocket hub. The second
-          container is nginx: it serves the embeddable chat widget and a demo
-          storefront, and proxies everything else to the API. The admin panel
-          is React and Vite, built into the API image and served from
-          <code>/admin</code>. Supabase holds the data, Stripe handles billing,
-          and Langfuse traces the model calls.
+          The backend is Python 3.12 on FastAPI and uvicorn. It holds the chat
+          endpoints, a separate agent per channel, OAuth for Shopify, Gmail,
+          and Meta, and a WebSocket hub for live inbox updates. The admin panel
+          is React 19 with Vite and TanStack Query, built into the API image at
+          build time and served from <code>/admin</code>. A second nginx
+          container serves the embeddable widget and proxies everything else
+          through.
         </p>
         <p>
-          The widget has to load on merchant sites as a plain classic script,
-          not a module, because a module-type load hits CORS cross-origin. That
-          one constraint shapes the whole build: the embed snippet carries the
-          client and token as data attributes, and the boot script reads them
-          off its own tag and injects the stylesheet itself.
+          Supabase is the Postgres layer, Stripe handles billing, and Langfuse
+          traces model calls. It all runs as Docker Compose behind host nginx
+          with Let's Encrypt, across three VPS hosts: production, staging, and
+          a self-hosted Firecrawl instance for scraping merchant sites during
+          onboarding.
         </p>
 
-        <h3>Skills, not one big prompt</h3>
+        <h3>Skills as files, not prompt rows</h3>
         <p>
-          Every reply is drafted through a skill, which is a markdown file with
-          YAML frontmatter holding the instructions for one kind of
-          conversation: order status, returns, product questions, complaints,
-          bookings. The system prompt carries only a one-line catalog of them.
-          When the model decides it needs the full instructions, it calls
-          <code>invoke_skill</code> and gets them.
+          Reply instructions live in markdown files with YAML frontmatter, one
+          per conversation type. The system prompt carries a single line about
+          each, and the model calls <code>invoke_skill</code> to pull the full
+          text when it decides it needs it.
         </p>
         <p>
-          Two things fall out of that. The prompt stays small no matter how
-          many skills exist, and customizing a client becomes a file diff. A
-          brand that handles returns differently gets its own
-          <code>handle_return_request.md</code> under a client directory, which
-          shadows the base file at load time. No database rows, no prompt
-          editor in the admin panel, and the change shows up in git history
-          like any other code change.
-        </p>
-
-        <h3>Deploys and migrations</h3>
-        <p>
-          A push to main runs lint and tests, then rebuilds staging. Production
-          is a manual button. Migrations run in between the image build and the
-          container swap, so the new image is already on disk when the schema
-          changes and no running code ever observes a half-migrated database. A
-          migration that fails aborts the deploy with the old containers still
-          serving traffic, which makes the bad case "nothing deployed" instead
-          of "half deployed".
-        </p>
-        <p>
-          Each file is checksummed with sha256 once it has run. Editing a
-          migration that already applied fails the next deploy rather than
-          being silently ignored. Anything that reads as destructive gets
-          detected two ways, by filename and by scanning the body for
-          <code>DROP TABLE</code>, <code>TRUNCATE</code>, and friends, then
-          logged and left pending for a person to run by hand.
+          The obvious alternative was prompt strings in Postgres with an editor
+          in the admin panel. I went with files because it makes per-client
+          customization a diff. A brand that wants returns handled its own way
+          gets a <code>handle_return_request.md</code> in a client directory
+          that shadows the base file at load time, and that change gets
+          reviewed, deployed, and reverted like any other code. The cost is
+          that clients cannot edit their own prompts. So far that has been the
+          right trade, because the ones who ask for changes want them tested,
+          not typed into a textarea.
         </p>
 
-        <h3>A firewall that was not filtering anything</h3>
+        <h3>The deploy pipeline</h3>
         <p>
-          The self-hosted Firecrawl scraper runs on its own VPS with an
-          unauthenticated API on port 3002. I locked it down to the two hosts
-          that need it with ufw, checked the rules, and it stayed reachable
-          from everywhere.
+          A push to main runs ruff, eslint, both test suites, and a Docker build
+          check, then rebuilds staging over SSH. Production is a manual
+          dispatch, so nothing reaches customers because I merged something on a
+          Friday.
         </p>
         <p>
-          Docker publishes ports by writing its own iptables rules, and traffic
-          forwarded to a container goes through FORWARD and DOCKER-USER without
-          ever touching the INPUT chain that ufw filters. The rules were
-          correct and simply never consulted. The allowlist had to move into
-          DOCKER-USER instead, installed as a systemd unit ordered after
-          docker so it survives a reboot, and re-asserted on every deploy.
+          Schema migrations run between <code>docker compose build</code> and
+          <code>up -d</code>. After the build, so the new image already has the
+          driver and the SQL files. Before the swap, so no running code ever
+          observes a half-migrated database. Under <code>set -e</code> a failed
+          migration aborts with the old containers still serving.
+        </p>
+        <p>
+          Every migration gets a sha256 checksum once applied, which means
+          editing one that already ran fails the next deploy rather than being
+          skipped in silence. Anything containing <code>DROP TABLE</code>,
+          <code>DROP COLUMN</code>, <code>TRUNCATE</code>, or
+          <code>DELETE FROM</code> is logged and left pending for me to run by
+          hand. The database credential sits in each host's env file instead of
+          GitHub Secrets, since the deploy is already running on the box over
+          SSH. No Postgres password needs to enter GitHub, and each host can
+          structurally only reach its own project.
+        </p>
+
+        <h3>Two infrastructure constraints I design around</h3>
+        <p>
+          Cross-host port allowlists belong in the DOCKER-USER iptables chain,
+          not ufw. Docker publishes container ports by writing its own rules,
+          and that traffic is forwarded, so it traverses FORWARD and DOCKER-USER
+          and never reaches the INPUT chain ufw filters. Mine is installed as a
+          systemd unit ordered after <code>docker.service</code> so it holds
+          across reboots, and the deploy re-asserts it every time.
+        </p>
+        <p>
+          The widget has to load on merchant sites as a classic script rather
+          than a module, because module-type loads hit CORS cross-origin. So the
+          embed snippet carries the client id and token as data attributes, and
+          the boot script reads them off its own tag and injects the stylesheet
+          itself. For the same category of reason, everything browser-facing
+          lives on one origin, which keeps admin OAuth popup messages
+          same-origin.
         </p>
       </article>
     </main>
